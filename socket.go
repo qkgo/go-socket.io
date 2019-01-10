@@ -1,15 +1,15 @@
 package socketio
 
 import (
-	"net/http"
-	"sync"
-
 	"github.com/googollee/go-engine.io"
+	"log"
+	"net/http"
+	"strings"
+	"sync"
 )
 
 // Socket is the socket object of socket.io.
 type Socket interface {
-
 	// Id returns the session id of socket.
 	Id() string
 
@@ -121,6 +121,9 @@ func (s *socket) sendId(args []interface{}) (int, error) {
 
 func (s *socket) loop() error {
 	defer func() {
+		if err := recover(); err != nil {
+			log.Println("socket-io error:", err)
+		}
 		s.LeaveAll()
 		p := packet{
 			Type: _DISCONNECT,
@@ -135,6 +138,7 @@ func (s *socket) loop() error {
 	}
 	encoder := newEncoder(s.conn)
 	if err := encoder.Encode(p); err != nil {
+		log.Println("加密p失败", err)
 		return err
 	}
 	s.socketHandler.onPacket(nil, &p)
@@ -142,11 +146,18 @@ func (s *socket) loop() error {
 		decoder := newDecoder(s.conn)
 		var p packet
 		if err := decoder.Decode(&p); err != nil {
-			return err
+			str := err.Error()
+			if strings.Contains(str, "EOF") {
+				log.Println("解密p失败，大部分情况为空", err, p)
+				return err
+			}
+			log.Println("解密p失败，大部分情况为空", err, p)
+			continue
 		}
 		ret, err := s.socketHandler.onPacket(decoder, &p)
 		if err != nil {
-			return err
+			log.Println("读取packet失败", err, decoder)
+			continue
 		}
 		switch p.Type {
 		case _CONNECT:
