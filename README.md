@@ -1,3 +1,6 @@
 # socket.io
 
-fix program carsh case by decode message error.
+fix program crash case by decode message error.
+
+
+this is a server site code 
