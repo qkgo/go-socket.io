@@ -148,15 +148,15 @@ func (s *socket) loop() error {
 		if err := decoder.Decode(&p); err != nil {
 			str := err.Error()
 			if strings.Contains(str, "EOF") {
-				log.Println("解密p失败，大部分情况为空", err, p)
+				log.Println("解密p失败，大部分情况为空,return = ", err, str, p)
 				return err
 			}
-			log.Println("解密p失败，大部分情况为空", err, p)
+			log.Println("解密p失败，大部分情况为空, continue", err, str, p)
 			continue
 		}
 		ret, err := s.socketHandler.onPacket(decoder, &p)
 		if err != nil {
-			log.Println("读取packet失败", err, decoder)
+			log.Println("读取packet失败,可能是参数错误,没有实现相关方法:", err, decoder)
 			continue
 		}
 		switch p.Type {
