@@ -148,7 +148,7 @@ func (s *socket) loop() error {
 		if err := decoder.Decode(&p); err != nil {
 			str := err.Error()
 			if strings.Contains(str, "EOF") {
-				log.Println("解密p失败，大部分情况为空,return = ", err, str, p)
+				log.Println("解密p失败，分析, return = ", err, str, p , "id:" , p.Id, ",data:",p.Data, ",type:",p.Type.String(),",attach:",p.attachNumber)
 				return err
 			}
 			log.Println("解密p失败，大部分情况为空, continue", err, str, p)
