@@ -147,7 +147,7 @@ func (s *socket) loop() error {
 		var p packet
 		if err := decoder.Decode(&p); err != nil {
 			str := err.Error()
-			if strings.Contains(str, "EOF") && p.Type.String()!= "connect" { // 不是新连接并包含EOF // 考虑包含 p.Id=0
+			if strings.Contains(str, "EOF") || p.Type.String()!= "connect" { // 不是新连接并包含EOF // connect 状态也需要return // 考虑包含 p.Id=0
 				log.Println("解密p失败，分析, return = ", err, str, p , "id:" , p.Id, ",data:",p.Data, ",type:",p.Type.String(),",attach:",p.attachNumber)
 				return err
 			}
