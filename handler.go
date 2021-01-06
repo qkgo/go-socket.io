@@ -6,6 +6,8 @@ import (
 	"sync"
 )
 
+const UNHANDLED string  = "unhandled"
+
 type baseHandler struct {
 	events    map[string]*caller
 	name      string
@@ -165,9 +167,8 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	h.evMu.Unlock()
 
 	if !ok {
-		message = "common"
 		h.evMu.Lock()
-		c, ok = h.events[message]  // 2021.1
+		c, ok = h.events[UNHANDLED]  // 2021.1
 		h.evMu.Unlock()
 		if !ok {
 			// If the message is not recognized by the server, the decoder.currentCloser
