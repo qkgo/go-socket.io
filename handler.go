@@ -166,6 +166,7 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	c, ok := h.events[message]
 	h.evMu.Unlock()
 
+	unhandlerdTrigger := false
 	if !ok {
 		h.evMu.Lock()
 		c, ok = h.events[UNHANDLED]  // 2021.1
@@ -177,6 +178,8 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 				decoder.Close()
 			}
 			return nil, nil
+		} else {
+			unhandlerdTrigger = true
 		}
 	}
 	
@@ -191,7 +194,9 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	for i := len(args); i < olen; i++ {
 		args = append(args, nil)
 	}
-
+	if unhandlerdTrigger {
+	        args = append(args, "message")
+	}
 	retV := c.Call(h.socket, args)
 	if len(retV) == 0 {
 		return nil, nil
