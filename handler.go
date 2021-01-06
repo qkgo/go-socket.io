@@ -163,14 +163,22 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	h.evMu.Lock()
 	c, ok := h.events[message]
 	h.evMu.Unlock()
+
 	if !ok {
-		// If the message is not recognized by the server, the decoder.currentCloser
-		// needs to be closed otherwise the server will be stuck until the e
-		if decoder != nil {
-			decoder.Close()
+		message = "common"
+		h.evMu.Lock()
+		c, ok = h.events[message]  // 2021.1
+		h.evMu.Unlock()
+		if !ok {
+			// If the message is not recognized by the server, the decoder.currentCloser
+			// needs to be closed otherwise the server will be stuck until the e
+			if decoder != nil {
+				decoder.Close()
+			}
+			return nil, nil
 		}
-		return nil, nil
 	}
+	
 	args := c.GetArgs()
 	olen := len(args)
 	if olen > 0 && decoder != nil {
