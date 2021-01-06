@@ -195,7 +195,7 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 		args = append(args, nil)
 	}
 	if unhandlerdTrigger {
-	        args = append(args, "message")
+	        args = append(args, message)
 	}
 	retV := c.Call(h.socket, args)
 	if len(retV) == 0 {
