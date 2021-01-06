@@ -51,7 +51,7 @@ func (c *caller) GetArgs() []interface{} {
 	return ret
 }
 
-func (c *caller) Call(so Socket, eventName string,args []interface{}) []reflect.Value {
+func (c *caller) Call(so Socket, eventName string,args []interface{} , unhandlerdTrigger bool) []reflect.Value {
 	var a []reflect.Value
 	diff := 0
 	if c.NeedSocket {
@@ -65,6 +65,9 @@ func (c *caller) Call(so Socket, eventName string,args []interface{}) []reflect.
 	if len(args) != len(c.Args) {
 		log.Println("args not match event register function by:", eventName)
 		return []reflect.Value{reflect.ValueOf([]interface{}{}), reflect.ValueOf(errors.New("Arguments do not match"))}
+	}
+	if unhandlerdTrigger {
+	    a[1] = eventName
 	}
 
 	for i, arg := range args {
