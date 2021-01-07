@@ -3,6 +3,7 @@ package socketio
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 )
 
@@ -51,23 +52,35 @@ func (c *caller) GetArgs() []interface{} {
 	return ret
 }
 
-func (c *caller) Call(so Socket, eventName string,args []interface{} , unhandlerdTrigger bool) []reflect.Value {
+func (c *caller) Call(so Socket, eventName string, args []interface{}, unhandledTrigger bool) []reflect.Value {
 	var a []reflect.Value
 	diff := 0
+	//if unhandledTrigger {  //cannot change data length
+	//	diff += 1
+	//}
 	if c.NeedSocket {
-		diff = 1
-		a = make([]reflect.Value, len(args)+1)
+		diff += 1
+		a = make([]reflect.Value, len(args)+diff)
 		a[0] = reflect.ValueOf(so)
+
+		if unhandledTrigger {
+			diff += 1
+			a[1] = reflect.ValueOf(eventName)
+			//a = append(a, reflect.ValueOf(eventName))
+		}
 	} else {
-		a = make([]reflect.Value, len(args))
+		a = make([]reflect.Value, len(args)+diff)
+
+		if unhandledTrigger {
+			diff += 1
+			a[0] = reflect.ValueOf(eventName)
+			//a = append(a, reflect.ValueOf(eventName))
+		}
 	}
 
 	if len(args) != len(c.Args) {
 		log.Println("args not match event register function by:", eventName)
 		return []reflect.Value{reflect.ValueOf([]interface{}{}), reflect.ValueOf(errors.New("Arguments do not match"))}
-	}
-	if unhandlerdTrigger {
-	    a[1] = eventName
 	}
 
 	for i, arg := range args {
@@ -79,7 +92,9 @@ func (c *caller) Call(so Socket, eventName string,args []interface{} , unhandler
 				v = reflect.Zero(c.Args[i])
 			}
 		}
-		a[i+diff] = v
+		if len(a) > i+diff {
+			a[i+diff] = v
+		}
 	}
 
 	return c.Func.Call(a)

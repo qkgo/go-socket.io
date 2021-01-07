@@ -2,11 +2,12 @@ package socketio
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"sync"
 )
 
-const UNHANDLED string  = "unhandled"
+const UNHANDLED string = "unhandled"
 
 type baseHandler struct {
 	events    map[string]*caller
@@ -139,6 +140,9 @@ func (h *baseHandler) broadcastName(room string) string {
 
 func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{}, error) {
 	defer func() {
+		if err := recover(); err != nil {
+			log.Println("onPacket Error: ", err)
+		}
 		if decoder != nil {
 			decoder.Close()
 		}
@@ -166,10 +170,10 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	c, ok := h.events[message]
 	h.evMu.Unlock()
 
-	unhandlerdTrigger := false
+	unhandledTrigger := false
 	if !ok {
 		h.evMu.Lock()
-		c, ok = h.events[UNHANDLED]  // 2021.1
+		c, ok = h.events[UNHANDLED] // 2021.1
 		h.evMu.Unlock()
 		if !ok {
 			// If the message is not recognized by the server, the decoder.currentCloser
@@ -179,10 +183,10 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 			}
 			return nil, nil
 		} else {
-			unhandlerdTrigger = true
+			unhandledTrigger = true
 		}
 	}
-	
+
 	args := c.GetArgs()
 	olen := len(args)
 	if olen > 0 && decoder != nil {
@@ -194,7 +198,7 @@ func (h *socketHandler) onPacket(decoder *decoder, packet *packet) ([]interface{
 	for i := len(args); i < olen; i++ {
 		args = append(args, nil)
 	}
-	retV := c.Call(h.socket, message, args, unhandlerdTrigger)
+	retV := c.Call(h.socket, message, args, unhandledTrigger)
 	if len(retV) == 0 {
 		return nil, nil
 	}
@@ -226,6 +230,6 @@ func (h *socketHandler) onAck(id int, decoder *decoder, packet *packet) error {
 	if err := decoder.DecodeData(packet); err != nil {
 		return err
 	}
-	c.Call(h.socket, args)
+	c.Call(h.socket, "", args, false)
 	return nil
 }
