@@ -2,9 +2,9 @@ package socketio
 
 import (
 	"github.com/googollee/go-engine.io"
+	"io"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 )
 
@@ -138,7 +138,7 @@ func (s *socket) loop() error {
 	}
 	encoder := newEncoder(s.conn)
 	if err := encoder.Encode(p); err != nil {
-		log.Println("加密p失败", err)
+		log.Println("[sid]:"+s.Id()+" encode failed: ", err)
 		return err
 	}
 	s.socketHandler.onPacket(nil, &p)
@@ -146,17 +146,17 @@ func (s *socket) loop() error {
 		decoder := newDecoder(s.conn)
 		var p packet
 		if err := decoder.Decode(&p); err != nil {
-			str := err.Error()
-			if strings.Contains(str, "EOF") || p.Type.String()!= "connect" { // 不是新连接并包含EOF // connect 状态也需要return // 考虑包含 p.Id=0
-				log.Println("解密p失败，分析, return = ", err, str, p , "id:" , p.Id, ",data:",p.Data, ",type:",p.Type.String(),",attach:",p.attachNumber)
+			if err == io.EOF {
+				continue
+			}
+			if p.Type.String() != "connect" {
 				return err
 			}
-			log.Println("解密p失败，大部分情况为空, continue", err, str, p)
 			continue
 		}
 		ret, err := s.socketHandler.onPacket(decoder, &p)
 		if err != nil {
-			log.Println("读取packet失败,可能是参数错误,没有实现相关方法:", err, decoder)
+			log.Println("[sid]:"+s.Id()+" decode p failed, please implement unhandled method:", err, decoder)
 			continue
 		}
 		switch p.Type {
