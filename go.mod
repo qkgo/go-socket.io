@@ -1,3 +1,3 @@
-module github.com/zhy1/go-socket.io
+module github.com/qkgo/go-socket.io
 
 go 1.12
