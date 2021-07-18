@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zhy1/go-socket.io"
+	"github.com/qkgo/go-socket.io"
 )
 
 func main() {
