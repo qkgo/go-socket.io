@@ -4,5 +4,5 @@ go 1.12
 
 
 require(
-      github.com/googollee/go-engine.io v1.4.2
+      github.com/googollee/go-engine.io v1.0.1
 )

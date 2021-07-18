@@ -1,11 +1,11 @@
 package socketio
 
 import (
-	"github.com/googollee/go-engine.io"
 	"io"
 	"log"
 	"net/http"
 	"sync"
+	"github.com/googollee/go-engine.io"
 )
 
 // Socket is the socket object of socket.io.
@@ -147,12 +147,15 @@ func (s *socket) loop() error {
 		var p packet
 		if err := decoder.Decode(&p); err != nil {
 			if err == io.EOF {
-				continue
+				log.Println(s.id, ":EOF")
+				return err
 			}
 			if p.Type.String() != "connect" { // 不是新连接并包含EOF //
 				// connect 状态也需要return // 考虑包含 p.Id=0
+				log.Println(s.id, ":decode err:", err)
 				return err
 			}
+			log.Println(s.id, ":decode err:", err)
 			continue
 		}
 		ret, err := s.socketHandler.onPacket(decoder, &p)
